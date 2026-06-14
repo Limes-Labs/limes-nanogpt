@@ -9,7 +9,7 @@ always_save_checkpoint = True
 dataset = "european_limes"
 gradient_accumulation_steps = 1
 batch_size = 48
-block_size = 256
+block_size = 128  # small char corpus; 256 overflows val split
 
 n_layer = 6
 n_head = 6
