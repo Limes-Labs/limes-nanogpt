@@ -68,3 +68,12 @@ MIT — see [LICENSE](LICENSE). Based on nanoGPT by Andrej Karpathy.
 ## Attribution
 
 If you use this repo in public work, cite Limes Labs and link to the training config and dataset source you used.
+## Constitutional alignment
+
+Limes models are trained in service of [limes-constitution](https://github.com/Limes-Labs/limes-constitution) — our public charter for European open AI behavior (safety, fundamental rights, openness, genuine helpfulness).
+
+For v0.1 we do not yet fine-tune on constitutional data; char-level runs are capability baselines. Next steps:
+
+- [ ] Add `data/constitution/` excerpts for continued-pretraining experiments
+- [ ] eurobench tasks for honesty, refusal quality, and rights-aware reasoning
+- [ ] Publish eval logs alongside checkpoints
