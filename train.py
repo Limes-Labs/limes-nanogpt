@@ -108,7 +108,13 @@ if os.path.exists(meta_path):
 
 def get_batch(split):
     data = np.memmap(os.path.join(data_dir, f"{split}.bin"), dtype=np.uint16, mode="r")
-    ix = torch.randint(len(data) - block_size, (batch_size,))
+    usable = len(data) - block_size - 1
+    if usable <= 0:
+        raise ValueError(
+            f"{split} split too small ({len(data)} tokens) for block_size={block_size}. "
+            f"Lower block_size in config or add data in data/{dataset}/"
+        )
+    ix = torch.randint(0, usable, (batch_size,))
     x = torch.stack(
         [torch.from_numpy((data[i : i + block_size]).astype(np.int64)) for i in ix]
     )
