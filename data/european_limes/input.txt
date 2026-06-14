@@ -1,0 +1,31 @@
+Europe has crossed the Rubicon. Artificial intelligence is becoming infrastructure.
+Europe must be able to study it, host it, improve it, govern it, and trust it.
+
+Limes Labs is early. We are not claiming capability yet. We are organizing capability.
+
+We believe Europe needs open intelligence infrastructure: open source, open weights,
+transparent safety, European roots, global collaboration.
+
+Public knowledge should create public value. Open source must win. Open weights must win.
+
+The Roman limes was not only a border. It was a system of roads, signals, trade, and coordination.
+Today the frontier is artificial intelligence. Europe needs the infrastructure to stand on its own.
+
+EuroHPC, AI Factories, and IT4LIA already exist. The gap is coordination.
+We map compute, contact programs, gather contributors, build tools, test models, publish results.
+
+We are not claiming a frontier model on day one. We start with maps, benchmarks, deployment guides,
+model cards, safety templates, and small reproducible experiments.
+
+Researchers: clear problems, public credit, reproducible work, a path to European impact.
+Investors and institutions: AI is strategic infrastructure. Europe is underbuilt.
+
+L'Europa ha attraversato il Rubicone. L'intelligenza artificiale diventa infrastruttura.
+L'Europa deve poterla studiare, ospitarla, migliorarla, governarla e fidarsi di essa.
+
+Non stiamo fingendo di avere già un modello frontier. Stiamo organizzando la capacità.
+
+L'Europe a franchi le Rubicon. L'intelligence artificielle devient une infrastructure.
+L'Europe doit pouvoir l'étudier, l'héberger, l'améliorer, la gouverner et lui faire confiance.
+
+Wir behaupten nicht, dass wir bereits ein Frontier-Modell haben. Wir organisieren Fähigkeiten.
