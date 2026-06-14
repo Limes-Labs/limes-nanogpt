@@ -1,6 +1,7 @@
-"""GPT language model — nanoGPT lineage, simplified for Limes Labs."""
+"""GPT language model — nanoGPT lineage, extended for Limes Labs."""
 
 import math
+import inspect
 from dataclasses import dataclass
 
 import torch
@@ -150,15 +151,62 @@ class GPT(nn.Module):
             loss = None
         return logits, loss
 
+    def configure_optimizers(self, weight_decay, learning_rate, betas, device_type):
+        """nanoGPT-style: decay only 2D weights, not norms/bias/embeddings."""
+        param_dict = {pn: p for pn, p in self.named_parameters() if p.requires_grad}
+        decay_params = [p for n, p in param_dict.items() if p.dim() >= 2]
+        nodecay_params = [p for n, p in param_dict.items() if p.dim() < 2]
+        optim_groups = [
+            {"params": decay_params, "weight_decay": weight_decay},
+            {"params": nodecay_params, "weight_decay": 0.0},
+        ]
+        fused = device_type == "cuda"
+        fused_available = "fused" in inspect.signature(torch.optim.AdamW).parameters
+        use_fused = fused and fused_available
+        optimizer = torch.optim.AdamW(
+            optim_groups, lr=learning_rate, betas=betas, fused=use_fused
+        )
+        return optimizer
+
+    def estimate_mfu(self, fwdbwd_per_iter, dt):
+        """Rough model FLOPs utilization vs A100 bfloat16 peak."""
+        n_params = self.get_num_params()
+        cfg = self.config
+        N = n_params + cfg.n_layer * cfg.n_head * cfg.n_embd * cfg.block_size
+        flops_per_iter = 6 * N * cfg.block_size * fwdbwd_per_iter
+        flops_achieved = flops_per_iter / dt
+        flops_promised = 312e12  # A100 bf16 peak
+        return flops_achieved / flops_promised
+
     @torch.no_grad()
-    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
+    def generate(
+        self,
+        idx,
+        max_new_tokens,
+        temperature=1.0,
+        top_k=None,
+        top_p=None,
+    ):
         for _ in range(max_new_tokens):
-            idx_cond = idx if idx.size(1) <= self.config.block_size else idx[:, -self.config.block_size :]
+            idx_cond = (
+                idx
+                if idx.size(1) <= self.config.block_size
+                else idx[:, -self.config.block_size :]
+            )
             logits, _ = self(idx_cond)
-            logits = logits[:, -1, :] / temperature
+            logits = logits[:, -1, :] / max(temperature, 1e-8)
             if top_k is not None:
                 v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
                 logits[logits < v[:, [-1]]] = -float("Inf")
+            if top_p is not None and top_p < 1.0:
+                sorted_logits, sorted_idx = torch.sort(logits, descending=True)
+                cumulative = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+                remove = cumulative > top_p
+                remove[..., 1:] = remove[..., :-1].clone()
+                remove[..., 0] = False
+                sorted_logits[remove] = -float("Inf")
+                logits = torch.zeros_like(logits).scatter(1, sorted_idx, sorted_logits)
             probs = F.softmax(logits, dim=-1)
-            idx = torch.cat((idx, torch.multinomial(probs, num_samples=1)), dim=1)
+            idx_next = torch.multinomial(probs, num_samples=1)
+            idx = torch.cat((idx, idx_next), dim=1)
         return idx
