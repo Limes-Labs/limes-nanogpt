@@ -1,4 +1,6 @@
 .venv/
+.venv-smoke/
+.venv-smoke-py*/
 __pycache__/
 *.pyc
 out-*/
@@ -6,3 +8,10 @@ out-*/
 data/european_limes/train.bin
 data/european_limes/val.bin
 data/european_limes/meta.pkl
+data/constitution/train.bin
+data/constitution/val.bin
+data/constitution/meta.pkl
+data/constitution_blend/input.txt
+data/constitution_blend/train.bin
+data/constitution_blend/val.bin
+data/constitution_blend/meta.pkl
