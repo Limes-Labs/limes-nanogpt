@@ -58,6 +58,69 @@ notes:
 - Generated text is expected to be noisy.
 - Results are for workflow verification and contributor learning.
 
+## RL Toy Smoke: `limes-rl-toy-v0`
+
+Purpose: prove that a contributor can run a tiny RL post-training loop with a
+verifiable reward, KL control against a frozen reference policy, and a JSON run
+artifact.
+
+Command:
+
+```bash
+./scripts/rl_toy_smoke.sh
+```
+
+Expected artifact:
+
+```text
+out-rl/ppo_toy.json
+```
+
+What to record after running:
+
+```text
+date:
+machine:
+python:
+duration:
+avg_reward:
+approx_kl_to_reference:
+exact_match_rate:
+notes:
+```
+
+Non-claims:
+
+- The toy policy is not a nanoGPT checkpoint.
+- The reward is exact/format matching, not helpfulness or preference modeling.
+- The run demonstrates the RL artifact loop; it does not demonstrate model
+  quality improvement.
+
+## Efficiency Score: `limes-efficiency-v0`
+
+Purpose: record tokenizer-agnostic bits per byte and artifact size for future
+Parameter Golf / EuroBench-style comparisons.
+
+Example command after a smoke checkpoint exists:
+
+```bash
+python3 scripts/efficiency_score.py \
+  --artifact=out-smoke/ckpt.pt \
+  --loss_nats=<validation-loss-nats-per-token> \
+  --tokens=<validation-token-count> \
+  --raw_bytes=<validation-raw-byte-count> \
+  --max_artifact_mib=16 \
+  --output_json=out-smoke/efficiency.json
+```
+
+Expected artifact:
+
+```text
+out-smoke/efficiency.json
+```
+
+Use the same raw validation bytes when comparing BPB across tokenizer choices.
+
 ## Path To Larger Work
 
 1. Laptop experiment: config, commit hash, generated data checksum, eval JSON.

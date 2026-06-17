@@ -50,6 +50,38 @@ out-smoke/eval.json
 The generated `out-smoke/eval.json` is the reproducible artifact to attach to
 experiment notes, EuroBench prototypes, and model-card drafts.
 
+## Toy RL And Efficiency Lab
+
+The repo now includes a deliberately tiny RL post-training path and an
+efficiency scoring helper. These are workflow exercises, not model-quality
+claims.
+
+Run the PPO-style toy RL smoke test:
+
+```bash
+./scripts/rl_toy_smoke.sh
+```
+
+It writes `out-rl/ppo_toy.json` with reward, KL-to-reference, and exact-match
+metrics for a tiny character policy.
+
+Compute tokenizer-agnostic BPB and an artifact-size check:
+
+```bash
+python3 scripts/efficiency_score.py \
+  --artifact=out-smoke/ckpt.pt \
+  --loss_nats=1.0 \
+  --tokens=1000 \
+  --raw_bytes=1000 \
+  --max_artifact_mib=16 \
+  --output_json=out-smoke/efficiency.json
+```
+
+Use real `loss_nats`, `tokens`, and `raw_bytes` from the same validation split
+when recording an experiment. See
+[docs/rl-and-efficiency-roadmap.md](docs/rl-and-efficiency-roadmap.md) and
+[docs/mtp-auxiliary-head-todo.md](docs/mtp-auxiliary-head-todo.md).
+
 If your default `python3` is newer than PyTorch supports, use:
 
 ```bash
@@ -127,6 +159,8 @@ this repo trains aligned assistants today.
 - `config/train_local_char.py`: modest laptop run for local experiments.
 - `config/train_european_char.py`: older larger char-level baseline.
 - `config/train_constitution.py`: optional constitution blend experiment.
+- `config/train_size_lab_16mb.py`: tiny CPU config for future BPB/artifact-size
+  checks inspired by Parameter Golf-style constraints.
 
 ## Evaluation Artifact
 
@@ -152,7 +186,8 @@ python3 -m unittest
 ```
 
 The tests currently check the onboarding contract: eval help must expose JSON
-artifact flags, and the smoke script must run from the repository root.
+artifact flags, the smoke scripts must run from the repository root, and the toy
+RL/efficiency helpers must write reproducible JSON artifacts.
 
 ## Project Layout
 
@@ -162,9 +197,13 @@ limes-nanogpt/
   train.py
   sample.py
   eval_perplexity.py
+  rl/
+  docs/
   config/
   data/
   scripts/smoke_test.sh
+  scripts/rl_toy_smoke.sh
+  scripts/efficiency_score.py
   tests/
 ```
 
