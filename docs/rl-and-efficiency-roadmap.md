@@ -16,7 +16,7 @@ reproducible work without implying frontier capability.
 - OpenAI Parameter Golf: https://github.com/openai/parameter-golf
 - AutoResearch-RL: https://arxiv.org/abs/2603.07300
 
-## PPO Vs GRPO
+## PPO Vs GRPO Vs OPD/OPSD
 
 PPO is a policy-gradient family that uses clipped or KL-penalized updates to
 avoid moving the new policy too far from the policy that sampled the data:
@@ -34,12 +34,24 @@ https://arxiv.org/abs/2402.03300. That makes GRPO a better conceptual fit for
 small exact-match or unit-test rewards than for subjective preference rewards
 that need a learned reward or value model: https://arxiv.org/abs/2402.03300.
 
-This PR starts with `rl/ppo_toy.py` rather than a GRPO trainer because PPO's
-sample, reward, clipped update, value estimate, and KL-control pieces are easier
-to inspect in a tiny standalone script. A next GRPO toy should reuse the same
-reward function but sample groups per prompt and replace the value estimate with
-within-group normalized rewards, following the GRPO direction from DeepSeekMath:
-https://arxiv.org/abs/2402.03300.
+`rl/ppo_toy.py` and `rl/grpo_toy.py` now use the same tiny character reward so
+contributors can inspect the difference directly:
+
+- PPO toy: samples variable-length completions, scores them, trains with a
+  clipped policy-gradient objective, fits a scalar value estimate, and reports
+  value loss plus KL to the frozen reference.
+- GRPO toy: samples grouped variable-length completions, normalizes rewards
+  within each group, trains the policy with the same clipped update shape, and
+  does not train a value head.
+
+OPD and OPSD should be documented as distillation-style methods, not direct RL
+substitutes. In tiny reproducible experiments, they belong beside policy/data
+distillation, policy merging, or teacher-student compression questions. They can
+complement PPO or GRPO by turning expensive policies, traces, or process signals
+into cheaper training data, but they do not replace online credit assignment,
+reward design, KL control, or value/group baseline estimation. Any future
+OPD/OPSD experiment in this repo should charge teacher, selector, and
+distillation compute in the update-budget ledger.
 
 ## Why Start Small
 
@@ -58,8 +70,8 @@ reference, and learn what breaks. The current command is:
 ./scripts/rl_toy_smoke.sh
 ```
 
-It writes `out-rl/ppo_toy.json` with the reward curve, KL to the reference
-policy, and clear non-claims.
+It writes `out-rl/ppo_toy.json` and `out-rl/grpo_toy.json` with reward curves,
+KL to the reference policy, and clear non-claims.
 
 ## Feasible Now
 
@@ -68,9 +80,13 @@ policy, and clear non-claims.
   frozen reference policy. The PPO shape follows the clipped-update and value
   function pattern documented by OpenAI Spinning Up:
   https://spinningup.openai.com/en/latest/algorithms/ppo.html.
-- GRPO-style toy loop: feasible next as a grouped version of the same character
-  task, with group-relative advantages and no value model, matching the
-  DeepSeekMath GRPO motivation: https://arxiv.org/abs/2402.03300.
+- GRPO-style toy loop: `rl/grpo_toy.py` is a grouped version of the same
+  character task, with group-relative advantages and no value model, matching
+  the DeepSeekMath GRPO motivation: https://arxiv.org/abs/2402.03300.
+- OPD/OPSD-style distillation notes: feasible as future documentation or
+  teacher-student toy experiments only after sources and definitions are pinned.
+  They should be treated as distillation methods that can complement RL, not as
+  direct PPO/GRPO replacements.
 - MTP as an auxiliary training head: DeepSeek-V3 reports a multi-token
   prediction objective and speculative decoding use, but this repo should start
   with a gated auxiliary loss only, not an inference claim:
@@ -116,8 +132,8 @@ policy, and clear non-claims.
 
 ## Near-Term Acceptance Criteria
 
-1. Add a GRPO toy next to `rl/ppo_toy.py` that samples groups per prompt and
-   writes a comparable JSON artifact, citing https://arxiv.org/abs/2402.03300.
+1. Compare `out-rl/ppo_toy.json` and `out-rl/grpo_toy.json` across several
+   seeds and report where the value head or group baseline helps on this toy.
 2. Add an MTP auxiliary-loss experiment only after the design in
    `docs/mtp-auxiliary-head-todo.md` is met, citing
    https://arxiv.org/abs/2412.19437.

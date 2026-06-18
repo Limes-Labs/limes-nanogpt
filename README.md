@@ -56,14 +56,15 @@ The repo now includes a deliberately tiny RL post-training path and an
 efficiency scoring helper. These are workflow exercises, not model-quality
 claims.
 
-Run the PPO-style toy RL smoke test:
+Run the PPO-style and GRPO-style toy RL smoke test:
 
 ```bash
 ./scripts/rl_toy_smoke.sh
 ```
 
-It writes `out-rl/ppo_toy.json` with reward, KL-to-reference, and exact-match
-metrics for a tiny character policy.
+It writes `out-rl/ppo_toy.json` and `out-rl/grpo_toy.json` with reward,
+KL-to-reference, and exact-match metrics for tiny character policies. PPO uses
+a scalar value estimate; GRPO uses grouped, critic-free reward normalization.
 
 Compute tokenizer-agnostic BPB and an artifact-size check:
 
@@ -79,8 +80,10 @@ python3 scripts/efficiency_score.py \
 
 Use real `loss_nats`, `tokens`, and `raw_bytes` from the same validation split
 when recording an experiment. See
-[docs/rl-and-efficiency-roadmap.md](docs/rl-and-efficiency-roadmap.md) and
-[docs/mtp-auxiliary-head-todo.md](docs/mtp-auxiliary-head-todo.md).
+[docs/rl-and-efficiency-roadmap.md](docs/rl-and-efficiency-roadmap.md),
+[docs/mtp-auxiliary-head-todo.md](docs/mtp-auxiliary-head-todo.md),
+[docs/tokenizer-plan.md](docs/tokenizer-plan.md), and
+[docs/optimizer-auxiliary-roadmap.md](docs/optimizer-auxiliary-roadmap.md).
 
 If your default `python3` is newer than PyTorch supports, use:
 

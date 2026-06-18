@@ -47,12 +47,43 @@ class RLToySmokeTests(unittest.TestCase):
         self.assertIn("avg_reward", artifact["final"])
         self.assertIn("approx_kl_to_reference", artifact["final"])
 
+    def test_grpo_toy_writes_group_relative_run_artifact(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "grpo_toy.json"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "rl/grpo_toy.py",
+                    "--steps=3",
+                    "--groups=4",
+                    "--group_size=4",
+                    "--seed=7",
+                    f"--output_json={output}",
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=True,
+            )
+
+            artifact = json.loads(output.read_text(encoding="utf-8"))
+
+        self.assertEqual(artifact["schema_version"], "limes-grpo-toy-v0")
+        self.assertEqual(artifact["config"]["target"], "AB")
+        self.assertEqual(artifact["config"]["groups"], 4)
+        self.assertEqual(artifact["config"]["group_size"], 4)
+        self.assertFalse(artifact["config"]["uses_value_head"])
+        self.assertEqual(len(artifact["history"]), 3)
+        self.assertIn("avg_group_reward_std", artifact["final"])
+        self.assertIn("approx_kl_to_reference", artifact["final"])
+
     def test_rl_smoke_script_runs_from_repository_root(self):
         smoke = (ROOT / "scripts" / "rl_toy_smoke.sh").read_text(encoding="utf-8")
 
         self.assertIn('REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.."', smoke)
         self.assertIn('cd "$REPO_ROOT"', smoke)
         self.assertIn("rl/ppo_toy.py", smoke)
+        self.assertIn("rl/grpo_toy.py", smoke)
 
 
 class EfficiencyScoreTests(unittest.TestCase):
@@ -95,6 +126,37 @@ class EfficiencyScoreTests(unittest.TestCase):
         self.assertEqual(score["artifact"]["bytes"], 4)
         self.assertTrue(score["artifact"]["within_limit"])
         self.assertAlmostEqual(score["metrics"]["bits_per_byte"], 1.0, places=6)
+
+
+class ResearchRoadmapDocTests(unittest.TestCase):
+    def test_public_research_roadmap_covers_safe_private_extractions(self):
+        roadmap = (ROOT / "docs" / "optimizer-auxiliary-roadmap.md").read_text(encoding="utf-8")
+
+        for phrase in [
+            "Sekant/SCTR",
+            "optimizer stability",
+            "multi-state",
+            "future-token",
+            "update-budget accounting",
+            "Do not copy private code wholesale",
+        ]:
+            self.assertIn(phrase, roadmap)
+
+    def test_tokenizer_plan_defines_multilingual_acceptance_tests(self):
+        plan = (ROOT / "docs" / "tokenizer-plan.md").read_text(encoding="utf-8")
+
+        for phrase in [
+            "BPE",
+            "SentencePiece",
+            "Italian",
+            "German",
+            "Polish",
+            "diacritics",
+            "round-trip",
+            "bits per byte",
+            "No heavy tokenizer dependency",
+        ]:
+            self.assertIn(phrase, plan)
 
 
 if __name__ == "__main__":
